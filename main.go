@@ -10,6 +10,8 @@ import (
 	"slices"
 	"strings"
 	"regexp"
+	"compress/gzip"
+	"io"
 
 	"github.com/maxmind/mmdbwriter"
 	"github.com/maxmind/mmdbwriter/inserter"
@@ -45,7 +47,25 @@ type ArinNetBlock struct {
 }
 
 func main() {
-	dbPath := "/Users/brien/urnetwork/config/raw/arin/2025.10.15/arin_db.xml"
+	dbPath := "/Users/brien/urnetwork/config/raw/arin/2025.10.15/arin_db.xml.gz"
+
+	reader := func()(*os.File, io.Reader, error) {
+		f, err := os.Open(dbPath)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		r := io.Reader(f)
+		if strings.HasSuffix(dbPath, ".gz") {
+			r, err = gzip.NewReader(r)
+			if err != nil {
+				f.Close()
+				return nil, nil, err
+			}
+		}
+		r = bufio.NewReader(r)
+		return f, r, nil
+	}
 
 	// pass 1: create <org>
 	// pass 2: map <net> to org and export
@@ -53,13 +73,12 @@ func main() {
 	orgs := map[string]*ArinOrg{}
 
 	func() {
-		f, err := os.Open(dbPath)
+		f, r, err := reader()
 		if err != nil {
 			panic(err)
 		}
 		defer f.Close()
 
-		r := bufio.NewReader(f)
 		d := xml.NewDecoder(r)
 
 		parseOrgs := func() {
@@ -114,13 +133,12 @@ func main() {
 	}()
 
 	func() {
-		f, err := os.Open(dbPath)
+		f, r, err := reader()
 		if err != nil {
 			panic(err)
 		}
 		defer f.Close()
 
-		r := bufio.NewReader(f)
 		d := xml.NewDecoder(r)
 
 
