@@ -47,7 +47,7 @@ type ArinNetBlock struct {
 }
 
 func main() {
-	dbPath := "/Users/brien/urnetwork/config/raw/arin/2025.10.15/arin_db.xml.gz"
+	dbPath := "/Users/brien/urnetwork/config/temp/arindb/2025.12.27/arin_db.xml"
 
 	reader := func()(*os.File, io.Reader, error) {
 		f, err := os.Open(dbPath)
