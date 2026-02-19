@@ -13,6 +13,8 @@ import (
 	"compress/gzip"
 	"io"
 
+	"github.com/docopt/docopt-go"
+
 	"github.com/maxmind/mmdbwriter"
 	"github.com/maxmind/mmdbwriter/inserter"
 	"github.com/maxmind/mmdbwriter/mmdbtype"
@@ -47,7 +49,23 @@ type ArinNetBlock struct {
 }
 
 func main() {
-	dbPath := "/Users/brien/urnetwork/config/temp/arindb/2025.12.27/arin_db.xml"
+	usage := `ARINdb tool.
+
+Usage:
+    arindb <dbpath>
+
+Options:
+    -h --help     Show this screen.
+    --version     Show version.`
+
+	opts, err := docopt.ParseArgs(usage, os.Args[1:], "0.0.0-local")
+	if err != nil {
+		panic(err)
+	}
+
+	dbPath, _ := opts.String("<dbpath>")
+
+	fmt.Printf("Generating ARINdb from \"%s\" ...\n", dbPath)
 
 	reader := func()(*os.File, io.Reader, error) {
 		f, err := os.Open(dbPath)
